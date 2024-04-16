@@ -5,7 +5,9 @@ namespace App\Http\Controllers\api\v1;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -17,13 +19,13 @@ class UserController extends Controller
                 $response["status"] = "failed";
                 $response["message"] = "Email doesn't exist";
             } else {
-                if ($userData->password != $request->get('password')) {
-                    $response["status"] = "failed";
-                    $response["message"] = "Incorrect password";
-                } else {
+                if (Auth::attempt(['email' => $request->get('email'), 'password' => $request->get('password')])) {
                     $response["status"] = "success";
                     $response["message"] = "Logged in successfully";
                     $response["data"] = $userData;
+                } else {
+                    $response["status"] = "failed";
+                    $response["message"] = "Incorrect password";
                 }
             }
         } catch (\Exception $e) {
@@ -39,15 +41,10 @@ class UserController extends Controller
             $user = new User();
             $user->name = $request->get('fullname');
             $user->email = $request->get('email');
-            $user->password = $request->get('password');
-            $avatar = $request->file('avatar');
-            if (!empty($avatar)) {
-                $extenstion = $avatar->getClientOriginalExtension();
-                $filename = 'avatar_' .  time() . '.' . $extenstion;
-                $avatar->move(public_path('assets/images/avatar/'), $filename);
-                $user->avatar = asset('assets/images/avatar/') . '/' . $filename;
-            } else {
-                $user->avatar = asset('assets/images/avatar/') . '/default_avatar.png';
+            $user->password = Hash::make($request->password);
+            $user->ip_address = $request->get('ip_address');
+            if (($request->avatar)) {
+                $user->addMedia($request->file('avatar'))->toMediaCollection('avatar');
             }
             if ($user->save() == true) {
                 $response["status"] = "success";
@@ -74,19 +71,18 @@ class UserController extends Controller
                 return response()->jsovn($response);
             }
             $user = User::find($id);
-            $avatar = $request->file('avatar');
-            $extenstion = $avatar->getClientOriginalExtension();
-            $filename = 'avatar_' .  time() . '.' . $extenstion;
-            $avatar->move(public_path('assets/images/avatar/'), $filename);
-            $user->avatar = asset('assets/images/avatar/') . '/' . $filename;
-            if ($user->save() == true) {
-                $response["status"] = "success";
-                $response["message"] = "Avatar updated successfully";
-                $response["data"] = $user;
-            } else {
-                $response["status"] = "failed";
-                $response["message"] = "Unable to update avatar";
+            if ($request->avatar) {
+                $user->clearMediaCollection('avatar');
+                $user->addMedia($request->file('avatar'))->toMediaCollection('avatar');
             }
+            // if ($user->save()) {    
+            $response["status"] = "success";
+            $response["message"] = "Avatar updated successfully";
+            $response["data"] = $user;
+            // } else {
+            //     $response["status"] = "failed";
+            //     $response["message"] = "Unable to update avatar";
+            // }
         } catch (\Exception $e) {
             $response["status"] = "error";
             $response["message"] = $e->getMessage();

@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Message extends Model
+class Message extends Model implements HasMedia
 {
+    use InteractsWithMedia;
+
     protected $table = 'messages';
     protected $fillable = [
         'content',
@@ -14,4 +18,10 @@ class Message extends Model
         'message_type',
         'photos',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('default');
+    }
+
 }

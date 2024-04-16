@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\v1\ConversationController;
 use App\Http\Controllers\api\v1\FriendController;
+use App\Http\Controllers\api\v1\GroupController;
 use App\Http\Controllers\api\v1\MessageController;
 use App\Http\Controllers\api\v1\UserController;
 use Illuminate\Http\Request;
@@ -36,3 +37,4 @@ Route::get('v1/get-user-friends', [FriendController::class, 'getUserFriends']);
 
 Route::get('v1/get-user-conversations', [ConversationController::class, 'getUserConversations']);
 Route::post('v1/create-conversation', [ConversationController::class, 'createConversation']);
+Route::apiResource('/v1/groups', GroupController::class);

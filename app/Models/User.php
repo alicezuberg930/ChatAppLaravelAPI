@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -31,6 +33,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'media'
     ];
 
     /**
@@ -41,4 +44,29 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    protected $appends = ['avatar'];
+
+    // protected $with = ["user", "driver", 'statuses', 'stops', 'order_service', 'taxi_order', 'receive_behalf_order'];
+
+    public function getAvatarAttribute()
+    {
+        return $this->getFirstMediaUrl('avatar');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('avatar')
+            ->useFallbackUrl(asset('assets/images/avatar/') . '/default_avatar.png');
+    }
+
+    // public function vendor()
+    // {
+    //     return $this->belongsTo('App\Models\Vendor', 'vendor_id', 'id');
+    // }
+
+    // public function vendors()
+    // {
+    //     return $this->hasMany('App\Models\Vendor', 'creator_id', 'id');
+    // }
 }

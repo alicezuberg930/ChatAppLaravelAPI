@@ -40,22 +40,15 @@ class MessageController extends Controller
             $message->sender_id = $request->get('sender_id');
             $message->message_type = $request->get('message_type');
             $message->conversation_id = $request->get('conversation_id');
-            $photos = $request->file('photos');
-            if (!empty($photos)) {
-                $filenames = [];
-                foreach ($photos as $photo) {
-                    $extenstion = $photo->getClientOriginalExtension();
-                    $filename = 'conversation_image_' .  time() . '.' . $extenstion;
-                    $photo->move(public_path('assets/images/conversation/'), $filename);
-                    $filename = asset('assets/images/conversation/') . '/' . $filename;
-                    array_push($filenames,  $filename);
+            if ($request->photos) {
+                foreach ($request->photos as $photo) {
+                    $message->clearMediaCollection();
+                    $message->addMedia($photo)->toMediaCollection();    
                 }
-                $message->photos = json_encode($filenames);
             }
             if ($message->save() == true) {
                 $response["status"] = "success";
                 $response["message"] = "message created successfully";
-                $message->photos = json_decode($message->photos);
                 $response["data"] = $message;
             } else {
                 $response["status"] = "failed";
