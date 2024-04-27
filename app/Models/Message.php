@@ -10,7 +10,10 @@ class Message extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
-    protected $table = 'messages';
+    protected $hidden = [
+        // 'media'
+    ];
+
     protected $fillable = [
         'content',
         'sender_id',
@@ -19,9 +22,15 @@ class Message extends Model implements HasMedia
         'photos',
     ];
 
+    protected $appends = ['medias'];
+
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('default');
+        $this->addMediaCollection('medias');
     }
 
+    public function getMediasAttribute()
+    {
+        return $this->getMedia('medias');
+    }
 }

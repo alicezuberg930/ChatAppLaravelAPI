@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\api\v1;
+namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -14,15 +14,16 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
-            $userData = User::where('email', $request->get('email'))->first();
-            if (empty($userData)) {
+            $user = User::where('email', $request->get('email'))->first();
+            if (empty($user)) {
                 $response["status"] = "failed";
                 $response["message"] = "Email doesn't exist";
             } else {
                 if (Auth::attempt(['email' => $request->get('email'), 'password' => $request->get('password')])) {
                     $response["status"] = "success";
                     $response["message"] = "Logged in successfully";
-                    $response["data"] = $userData;
+                    $response["data"] = $user;
+                    $response["bearer_token"] = $user->createToken($user->name)->plainTextToken;
                 } else {
                     $response["status"] = "failed";
                     $response["message"] = "Incorrect password";
@@ -133,5 +134,9 @@ class UserController extends Controller
             $response["message"] = $e->getMessage();
         }
         return response()->json($response);
+    }
+
+    public function messageOtherUser(Request $request)
+    {
     }
 }

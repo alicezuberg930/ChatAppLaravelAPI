@@ -12,6 +12,7 @@ class Group extends Model implements HasMedia
 
     protected $fillable = [
         'group_name',
+        'admin_id',
     ];
 
     protected $hidden = [
@@ -19,6 +20,8 @@ class Group extends Model implements HasMedia
     ];
 
     protected $appends = ['avatar'];
+
+    protected $with = ['users'];
 
     public function getAvatarAttribute()
     {
@@ -28,6 +31,11 @@ class Group extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('avatar')
-            ->useFallbackUrl(asset('assets/images/avatar/') . '/default_avatar.png');
+            ->useFallbackUrl(asset('assets/images/avatar/') . '/default_group_avatar.png');
+    }
+
+    public function users()
+    {
+        return $this->hasMany('App\Models\UserGroup', 'group_id', 'id');
     }
 }

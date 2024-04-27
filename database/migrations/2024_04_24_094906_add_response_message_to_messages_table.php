@@ -13,12 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('conversations', function (Blueprint $table) {
-            $table->id();
-            $table->string('type');
-            $table->string('recent_message');
-            $table->integer('recent_sender');
-            $table->timestamps();
+        Schema::table('messages', function (Blueprint $table) {
+            $table->unsignedBigInteger('response_message')->nullable();
+            $table->foreign('response_message')->references('id')->on('messages')->nullOnDelete();
         });
     }
 
@@ -29,6 +26,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('conversations');
+        Schema::table('messages', function (Blueprint $table) {
+            $table->dropColumn('response_message');
+        });
     }
 };

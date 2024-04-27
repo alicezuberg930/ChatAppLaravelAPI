@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\api\v1\ConversationController;
-use App\Http\Controllers\api\v1\FriendController;
-use App\Http\Controllers\api\v1\GroupController;
-use App\Http\Controllers\api\v1\MessageController;
-use App\Http\Controllers\api\v1\UserController;
+use App\Http\Controllers\api\ConversationController;
+use App\Http\Controllers\api\FriendController;
+use App\Http\Controllers\api\GroupController;
+use App\Http\Controllers\api\MessageController;
+use App\Http\Controllers\api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,18 +23,24 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('v1/get-user-messages/', [MessageController::class, 'getUserMessages']);
-Route::get('v1/delete-message', [MessageController::class, 'deleteMessage']);
-Route::post('v1/send-message', [MessageController::class, 'sendMessage']);
+Route::post('login', [UserController::class, 'login']);
+Route::post('register', [UserController::class, 'register']);
 
-Route::post('v1/login', [UserController::class, 'login']);
-Route::post('v1/register', [UserController::class, 'register']);
-Route::post('v1/update-user-avatar', [UserController::class, 'updateUserAvatar']);
-Route::put('v1/update-user-status', [UserController::class, 'updateUserStatus']);
-Route::get('v1/search-user', [UserController::class, 'searchUser']);
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('get-user-messages/', [MessageController::class, 'getUserMessages']);
+    Route::get('delete-message', [MessageController::class, 'deleteMessage']);
+    Route::post('send-message', [MessageController::class, 'sendMessage']);
 
-Route::get('v1/get-user-friends', [FriendController::class, 'getUserFriends']);
+    Route::post('update-user-avatar', [UserController::class, 'updateUserAvatar']);
+    Route::put('update-user-status', [UserController::class, 'updateUserStatus']);
+    Route::get('search-user', [UserController::class, 'searchUser']);
 
-Route::get('v1/get-user-conversations', [ConversationController::class, 'getUserConversations']);
-Route::post('v1/create-conversation', [ConversationController::class, 'createConversation']);
-Route::apiResource('/v1/groups', GroupController::class);
+    Route::get('get-user-friends', [FriendController::class, 'getUserFriends']);
+
+    Route::apiResource('conversation', ConversationController::class);
+    Route::get('get-user-conversations', [ConversationController::class, 'getUserConversations']);
+    Route::post('create-conversation', [ConversationController::class, 'createConversation']);
+
+    Route::apiResource('/group', GroupController::class);
+    Route::post('group/add-user-group', [GroupController::class, 'addUserToGroup']);
+});

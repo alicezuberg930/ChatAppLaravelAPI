@@ -47,17 +47,15 @@ class User extends Authenticatable implements HasMedia
 
     protected $appends = ['avatar'];
 
-    // protected $with = ["user", "driver", 'statuses', 'stops', 'order_service', 'taxi_order', 'receive_behalf_order'];
-
-    public function getAvatarAttribute()
-    {
-        return $this->getFirstMediaUrl('avatar');
-    }
-
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('avatar')
             ->useFallbackUrl(asset('assets/images/avatar/') . '/default_avatar.png');
+    }
+
+    public function getAvatarAttribute()
+    {
+        return $this->getFirstMediaUrl('avatar');
     }
 
     // public function vendor()

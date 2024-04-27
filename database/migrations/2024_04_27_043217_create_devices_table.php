@@ -13,12 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('messages', function (Blueprint $table) {
+        Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->string('content')->nullable();
-            $table->integer('sender_id');
-            $table->integer('conversation_id');
-            $table->string('message_type');
+            $table->constrained('user_id');
+            $table->string("device_id")->nullable();
+            $table->string('device_fcm_id')->nullable();
             $table->timestamps();
         });
     }
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('messages');
+        Schema::dropIfExists('devices');
     }
 };

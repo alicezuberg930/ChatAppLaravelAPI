@@ -1,29 +1,28 @@
 <?php
 
-namespace App\Http\Controllers\api\v1;
+namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class ConversationController extends Controller
+class FriendController extends Controller
 {
-    public function getUserConversations(Request $request)
+    public function getUserFriends(Request $request)
     {
         try {
-            $myConversations = DB::table('user_conversation')
-                ->join('conversations', 'conversations.id', '=', 'user_conversation.conversation_id')
-                ->leftjoin('users', 'user_conversation.receiver_id', '=', 'users.id')
-                ->where('user_conversation.user_id', '=', $request->get('user_id'))
-                ->get(['status', 'user_id', 'conversation_id', 'type', 'recent_message', 'recent_sender', 'name as receiver_name', 'group_name', 'avatar as user_avatar', 'group_avatar']);
-            if (!count($myConversations)) {
+            $myFriends = DB::table('user_friend')
+                ->join('users', 'users.id', '=', 'user_friend.friend_id')
+                ->where('user_friend.user_id', '=', $request->get('user_id'))
+                ->get(['user_id', 'friend_id', 'conversation_id', 'name', 'email', 'avatar', 'user_friend.status as friend_status', 'users.status as user_status']);
+            if (!count($myFriends)) {
                 $response["status"] = "failed";
                 $response["message"] = "no data found";
             } else {
                 $response["status"] = "success";
                 $response["message"] = "data fetched successfully";
-                $response["data"] = $myConversations;
+                $response["data"] = $myFriends;
             }
         } catch (\Exception $e) {
             $response["status"] = "error";
