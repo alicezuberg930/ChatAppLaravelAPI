@@ -13,16 +13,11 @@ class Conversation extends Model
         'recipient_group_id',
     ];
 
-    protected $with = ["recipient_group", "recipient_user"];
+    protected $with = ["recipient_group"];
 
     public function recipient_group()
     {
         return $this->belongsTo('App\Models\Group', 'recipient_group_id', 'id');
-    }
-
-    public function recipient_user()
-    {
-        return $this->belongsTo('App\Models\User', 'recipient_id', 'id');
     }
 
     public function messages()

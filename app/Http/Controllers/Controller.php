@@ -12,6 +12,8 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    public $paginate = 10;
+
     public function readalbeError($validator)
     {
         return Arr::first(Arr::flatten($validator->messages()->get('*')));

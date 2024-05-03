@@ -18,9 +18,9 @@ class UserConversationResource extends JsonResource
             'user_id' => $this->user_id,
             'conversation_id' => $this->conversation_id,
             'receiver_id' => $this->receiver_id,
+            'aaaa' => "iohwuihear",
             'recent_message' => $this->conversation->recent_message,
             'group' => new GroupResource($this->conversation->recipient_group),
-            'messages' => $this->conversation->messages,
             'receiver' => $this->receiver,
         ];
     }

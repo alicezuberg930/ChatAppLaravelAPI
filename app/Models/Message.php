@@ -10,9 +10,7 @@ class Message extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
-    protected $hidden = [
-        // 'media'
-    ];
+    protected $hidden = ['media'];
 
     protected $fillable = [
         'content',
@@ -24,6 +22,8 @@ class Message extends Model implements HasMedia
 
     protected $appends = ['medias'];
 
+    protected $with = ["sender"];
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('medias');
@@ -31,6 +31,23 @@ class Message extends Model implements HasMedia
 
     public function getMediasAttribute()
     {
-        return $this->getMedia('medias');
+        $medias = $this->getMedia('medias');
+        $requiredAttributes = [];
+        foreach ($medias as $media) {
+            $attributes = array(
+                "original_url" => $media->getFullUrl(),
+                "file_name" => $media->file_name,
+                "size" => $media->size,
+                "human_readable_size" => $media->human_readable_size,
+                "mime_type" => $media->mime_type,
+            );
+            array_push($requiredAttributes, $attributes);
+        }
+        return $requiredAttributes;
+    }
+
+    public function sender()
+    {
+        return $this->belongsTo('App\Models\User', 'sender_id', 'id');
     }
 }

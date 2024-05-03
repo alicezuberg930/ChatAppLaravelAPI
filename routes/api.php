@@ -27,20 +27,18 @@ Route::post('login', [UserController::class, 'login']);
 Route::post('register', [UserController::class, 'register']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('get-user-messages/', [MessageController::class, 'getUserMessages']);
-    Route::get('delete-message', [MessageController::class, 'deleteMessage']);
-    Route::post('send-message', [MessageController::class, 'sendMessage']);
+    Route::apiResource('message', MessageController::class);
 
     Route::post('update-user-avatar', [UserController::class, 'updateUserAvatar']);
     Route::put('update-user-status', [UserController::class, 'updateUserStatus']);
-    Route::get('search-user', [UserController::class, 'searchUser']);
+
+    Route::apiResource('user', UserController::class);
 
     Route::get('get-user-friends', [FriendController::class, 'getUserFriends']);
 
     Route::apiResource('conversation', ConversationController::class);
     Route::get('get-user-conversations', [ConversationController::class, 'getUserConversations']);
-    Route::post('create-conversation', [ConversationController::class, 'createConversation']);
 
-    Route::apiResource('/group', GroupController::class);
+    Route::apiResource('group', GroupController::class);
     Route::post('group/add-user-group', [GroupController::class, 'addUserToGroup']);
 });

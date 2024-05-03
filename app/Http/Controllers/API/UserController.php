@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Device;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,24 +17,30 @@ class UserController extends Controller
         try {
             $user = User::where('email', $request->get('email'))->first();
             if (empty($user)) {
-                $response["status"] = "failed";
-                $response["message"] = "Email doesn't exist";
+                return response()->json(["message" => "Email doesn't exist"], 500);
             } else {
                 if (Auth::attempt(['email' => $request->get('email'), 'password' => $request->get('password')])) {
-                    $response["status"] = "success";
-                    $response["message"] = "Logged in successfully";
-                    $response["data"] = $user;
-                    $response["bearer_token"] = $user->createToken($user->name)->plainTextToken;
+                    // Device::firstOrCreate(
+                    //     ['device_id' => $request->device_id],
+                    //     [
+                    //         'user_id' => $user->id,
+                    //         'fcm_id' => $request->fcm_id,
+                    //         'device_id' => $request->device_id,
+                    //         'device_model' => $request->device_model,
+                    //     ]
+                    // );
+                    return response()->json([
+                        "message" => "Logged in successfully",
+                        "bearer_token" => $user->createToken($user->name)->plainTextToken,
+                        "data" => $user,
+                    ], 200);
                 } else {
-                    $response["status"] = "failed";
-                    $response["message"] = "Incorrect password";
+                    return response()->json(["message" => "Incorrect password"], 500);
                 }
             }
         } catch (\Exception $e) {
-            $response["status"] = "error";
-            $response["message"] = $e->getMessage();
+            return response()->json(["message" => $e->getMessage()], 500);
         }
-        return response()->json($response);
     }
 
     public function register(Request $request)
@@ -60,6 +67,20 @@ class UserController extends Controller
             $response["message"] = $e->getMessage();
         }
         return response()->json($response);
+    }
+
+    public function index(Request $request)
+    {
+        try {
+            $searchUsers = User::where([['name', 'like', '%' . $request->fullname . '%'], ['id', '!=', Auth::id()]])->get();
+            if (!$searchUsers) {
+                return response()->json(["message" => "No user found"], 500);
+            } else {
+                return response()->json(["message" => "User data found", "data" => $searchUsers], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(["message" => $e->getMessage()], 500);
+        }
     }
 
     public function updateUserAvatar(Request $request)
@@ -109,25 +130,6 @@ class UserController extends Controller
             } else {
                 $response["status"] = "failed";
                 $response["message"] = "Unable to update status";
-            }
-        } catch (\Exception $e) {
-            $response["status"] = "error";
-            $response["message"] = $e->getMessage();
-        }
-        return response()->json($response);
-    }
-
-    public function searchUser(Request $request)
-    {
-        try {
-            $searchUsers = User::where('name', 'like', '%' . $request->get('fullname') . '%')->get();
-            if (!count($searchUsers)) {
-                $response["status"] = "failed";
-                $response["message"] = "no data found";
-            } else {
-                $response["status"] = "success";
-                $response["message"] = "data fetched successfully";
-                $response["data"] = $searchUsers;
             }
         } catch (\Exception $e) {
             $response["status"] = "error";

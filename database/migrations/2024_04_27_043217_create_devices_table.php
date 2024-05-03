@@ -15,9 +15,10 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->constrained('user_id');
-            $table->string("device_id")->nullable();
-            $table->string('device_fcm_id')->nullable();
+            $table->string('fcm_id')->nullable();
+            $table->string('device_id')->nullable();
+            $table->string('device_model')->nullable();
+            $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });
     }

@@ -13,14 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class ConversationController extends Controller
 {
-    public function store(Request $request)
-    {
-    }
-
     public function show($id)
     {
         try {
-            $conversation = new UserConversationResource(UserConversation::with('conversation.messages')->where([['user_id', Auth::id()], ['conversation_id', $id]])->first());
+            $conversation = new UserConversationResource(UserConversation::where([['user_id', Auth::id()], ['conversation_id', $id]])->first());
             if ($conversation) {
                 return response()->json(['message' => 'Conversation details fetched successfully', "data" => $conversation], 200);
             } else {
@@ -44,25 +40,36 @@ class ConversationController extends Controller
         }
     }
 
-    public function createConversation(Request $request)
+    public function store(Request $request)
     {
+        // one to one chat
         try {
+            // DB::beginTransaction();
             $conversation = new Conversation();
-            $conversation->type = $request->get('type');
-            $conversation->recent_message = $request->get('recent_message');
-            $conversation->recent_sender = $request->get('recent_sender');
-            if ($conversation->save() == true) {
-                $response["status"] = "success";
-                $response["message"] = "Conversation created successfully";
-                $response["data"] = $conversation;
-            } else {
-                $response["status"] = "failed";
-                $response["message"] = "Unable to create conversation";
-            }
+            $conversation->recent_message = $request->recent_message;
+            $conversation->save();
+
+            $userConversation = new UserConversation();
+            $userConversation->user_id = Auth::id();
+            $userConversation->conversation_id = $conversation->id;
+            $userConversation->receiver_id = $request->receiver_id;
+            $userConversation->save();
+
+            $userConversation2 = new UserConversation();
+            $userConversation2->user_id = $request->receiver_id;
+            $userConversation2->conversation_id = $conversation->id;
+            $userConversation2->receiver_id = Auth::id();
+            $userConversation2->save();
+
+            // if ($checkConversation && $checkUserConversation && $checkUserConversation2) {
+            return response()->json(["message" => "Conversation created successfully", "data" => new UserConversationResource($userConversation)], 200);
+            // } else {
+            // DB::rollBack();
+            // return response()->json(["message" => "Unable to create conversation"], 500);
+            // }
         } catch (\Exception $e) {
-            $response["status"] = "error";
-            $response["message"] = $e->getMessage();
+            // DB::rollBack();
+            return response()->json(["message" => $e->getMessage()], 500);
         }
-        return response()->json($response);
     }
 }

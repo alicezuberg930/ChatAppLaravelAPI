@@ -33,7 +33,10 @@ class User extends Authenticatable implements HasMedia
     protected $hidden = [
         'password',
         'remember_token',
-        'media'
+        'media',
+        'email_verified_at',
+        'created_at',
+        'updated_at',
     ];
 
     /**
@@ -47,6 +50,8 @@ class User extends Authenticatable implements HasMedia
 
     protected $appends = ['avatar'];
 
+    protected $with = ["devices"];
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('avatar')
@@ -58,13 +63,8 @@ class User extends Authenticatable implements HasMedia
         return $this->getFirstMediaUrl('avatar');
     }
 
-    // public function vendor()
-    // {
-    //     return $this->belongsTo('App\Models\Vendor', 'vendor_id', 'id');
-    // }
-
-    // public function vendors()
-    // {
-    //     return $this->hasMany('App\Models\Vendor', 'creator_id', 'id');
-    // }
+    public function devices()
+    {
+        return $this->hasMany('App\Models\Device', 'user_id', 'id');
+    }
 }
