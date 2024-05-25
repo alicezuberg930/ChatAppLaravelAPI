@@ -43,10 +43,11 @@ class MessageController extends Controller
                     }
                 }
                 // start finding recipient user to sent notifications to
-                $receivingUsers = UserConversation::where([['user_id', '!=', Auth::id()], ['conversation_id', $request->conversation_id]])->get();
+                $receivingUsers = UserConversation::where([['user_id', Auth::id()], ['conversation_id', $request->conversation_id]])->get();
                 if (count($receivingUsers) > 0) {
                     foreach ($receivingUsers as $receivingUser) {
                         $fcmIds = array();
+                        $notificationService = new FirebaseNotificationService();
                         if ($receivingUser->conversation->recipient_group != null) {
                             foreach ($receivingUser->conversation->recipient_group->users as $user) {
                                 foreach ($user->devices as $device) {
@@ -54,14 +55,20 @@ class MessageController extends Controller
                                         $fcmIds[] = $device->fcm_id;
                                     }
                                 }
-                                $notificationBody = array("body" => $request->content, "title" => $user->name, "sound" => "mySound", "tag" => "message_sent");
-                                FirebaseNotificationService::sendPushNotification($fcmIds, $notificationBody);
+                                $notificationBody = array("body" => $request->content, "title" => $user->name, "sound" => "mySound");
+                                $notificationService->sendPushNotification($fcmIds, $notificationBody, array());
                                 $fcmIds = [];
                             }
                         }
                         if ($receivingUser->receiver != null) {
-                            $notificationBody = array("body" => $request->content, "title" => $receivingUser->receiver, "sound" => "mySound", "tag" => "message_sent");
-                            FirebaseNotificationService::sendPushNotification($fcmIds, $notificationBody);
+                            foreach ($receivingUser->receiver->devices as $device) {
+                                if (!empty($device->fcm_id)) {
+                                    $fcmIds[] = $device->fcm_id;
+                                }
+                            }
+                            $data = new UserConversationResource(UserConversation::where('conversation_id', $request->conversation_id)->first());
+                            $notificationBody = array("body" => $request->content, "title" => $receivingUser->receiver->name, "sound" => "mySound");
+                            $notificationService->sendPushNotification($fcmIds, $notificationBody, $data);
                         }
                     }
                 }

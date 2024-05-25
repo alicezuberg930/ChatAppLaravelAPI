@@ -14,7 +14,7 @@ use Spatie\MediaLibrary\Conversions\Conversion;
 
 class GroupController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         try {
             $groups = Group::all();

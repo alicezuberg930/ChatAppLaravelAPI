@@ -15,20 +15,22 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
-            $user = User::where('email', $request->get('email'))->first();
+            $user = User::where('email', $request->email)->first();
             if (empty($user)) {
                 return response()->json(["message" => "Email doesn't exist"], 500);
             } else {
-                if (Auth::attempt(['email' => $request->get('email'), 'password' => $request->get('password')])) {
-                    // Device::firstOrCreate(
-                    //     ['device_id' => $request->device_id],
-                    //     [
-                    //         'user_id' => $user->id,
-                    //         'fcm_id' => $request->fcm_id,
-                    //         'device_id' => $request->device_id,
-                    //         'device_model' => $request->device_model,
-                    //     ]
-                    // );
+                if (Auth::attempt(['email' => $request->email, 'password' => $request->password], true)) {
+                    Device::firstOrCreate(
+                        ['device_id' => $request->device_id],
+                        [
+                            'user_id' => $user->id,
+                            'fcm_id' => $request->fcm_id,
+                            'device_id' => $request->device_id,
+                            'device_model' => $request->device_model,
+                        ]
+                    );
+                    $device = Device::where('device_id', $request->device_id)->first();
+                    if ($device->fcm_id != $request->fcm_id) $device->update(['fcm_id' => $request->fcm_id]);
                     return response()->json([
                         "message" => "Logged in successfully",
                         "bearer_token" => $user->createToken($user->name)->plainTextToken,
@@ -67,6 +69,20 @@ class UserController extends Controller
             $response["message"] = $e->getMessage();
         }
         return response()->json($response);
+    }
+
+    public function logout()
+    {
+        try {
+            $devices = Device::where('user_id', Auth::id())->get();
+            foreach ($devices as $device) {
+                $device->delete();
+            }
+            auth()->user()->tokens()->delete();
+            return response()->json(["message" => "Logout successfully"], 200);
+        } catch (\Exception $e) {
+            return response()->json(["message" => $e->getMessage()], 500);
+        }
     }
 
     public function index(Request $request)

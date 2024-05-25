@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\api\AgoraCallController;
 use App\Http\Controllers\api\ConversationController;
 use App\Http\Controllers\api\FriendController;
 use App\Http\Controllers\api\GroupController;
@@ -27,6 +28,8 @@ Route::post('login', [UserController::class, 'login']);
 Route::post('register', [UserController::class, 'register']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('logout', [UserController::class, 'logout']);
+
     Route::apiResource('message', MessageController::class);
 
     Route::post('update-user-avatar', [UserController::class, 'updateUserAvatar']);
@@ -34,11 +37,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::apiResource('user', UserController::class);
 
-    Route::get('get-user-friends', [FriendController::class, 'getUserFriends']);
+    Route::apiResource('friend', FriendController::class);
+    Route::get('accept', [FriendController::class, 'acceptRequest']);
+    Route::get('reject', [FriendController::class, 'rejectOrRemoveFriend']);
+    Route::get('unfriend', [FriendController::class, 'rejectOrRemoveFriend']);
 
     Route::apiResource('conversation', ConversationController::class);
-    Route::get('get-user-conversations', [ConversationController::class, 'getUserConversations']);
+    Route::get('check-for-conversation-with-user', [ConversationController::class, 'checkForConversationWithUser']);
 
     Route::apiResource('group', GroupController::class);
     Route::post('group/add-user-group', [GroupController::class, 'addUserToGroup']);
+
+    Route::get('get-meeting', [AgoraCallController::class, 'createAgoraMeeting']);
 });

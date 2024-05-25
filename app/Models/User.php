@@ -50,7 +50,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $appends = ['avatar'];
 
-    protected $with = ["devices"];
+    protected $with = ["devices", "friends"];
 
     public function registerMediaCollections(): void
     {
@@ -66,5 +66,10 @@ class User extends Authenticatable implements HasMedia
     public function devices()
     {
         return $this->hasMany('App\Models\Device', 'user_id', 'id');
+    }
+
+    public function friends()
+    {
+        return $this->hasMany('App\Models\UserFriend', 'user_id', 'id');
     }
 }

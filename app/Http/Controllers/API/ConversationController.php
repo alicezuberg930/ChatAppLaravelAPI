@@ -3,30 +3,15 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ConversationResource;
 use App\Http\Resources\UserConversationResource;
 use App\Models\Conversation;
 use App\Models\UserConversation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class ConversationController extends Controller
 {
-    public function show($id)
-    {
-        try {
-            $conversation = new UserConversationResource(UserConversation::where([['user_id', Auth::id()], ['conversation_id', $id]])->first());
-            if ($conversation) {
-                return response()->json(['message' => 'Conversation details fetched successfully', "data" => $conversation], 200);
-            } else {
-                return response()->json(['message' => 'No conversation found'], 500);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
-        }
-    }
-    public function getUserConversations(Request $request)
+    public function index()
     {
         try {
             $myConversations = UserConversationResource::collection(UserConversation::where('user_id', Auth::id())->get());
@@ -70,6 +55,35 @@ class ConversationController extends Controller
         } catch (\Exception $e) {
             // DB::rollBack();
             return response()->json(["message" => $e->getMessage()], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $conversation = new UserConversationResource(UserConversation::where([['user_id', Auth::id()], ['conversation_id', $id]])->first());
+            if ($conversation) {
+                return response()->json(['message' => 'Conversation details fetched successfully', "data" => $conversation], 200);
+            } else {
+                return response()->json(['message' => 'No conversation found'], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function checkForConversationWithUser(Request $request)
+    {
+        try {
+            $myConversation = (UserConversation::where([['user_id', Auth::id()], ['receiver_id', $request->receiver_id]])->first());
+            $recipientConversation = (UserConversation::where([['user_id', $request->receiver_id], ['receiver_id', Auth::id()]])->first());
+            if ($myConversation && $recipientConversation) {
+                return response()->json(['message' => 'Conversation fetched successfully', 'data' => new UserConversationResource($myConversation)], 200);
+            } else {
+                return response()->json(['message' => 'No conversation found'], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 }
